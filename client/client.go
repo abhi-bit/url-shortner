@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -12,15 +13,10 @@ import (
 	"github.com/couchbaselabs/go-couchbase"
 )
 
-type KeyStruct struct {
-	originalURL string
-	shortURL    string
-	ID          int64
-}
-
 const (
-	bname = "default"
-	url   = "http://localhost:8091"
+	bname          = "default"
+	cbURL          = "http://localhost:8091"
+	shortURLPrefix = "http://localhost:8080/"
 )
 
 func mf(err error) {
@@ -34,16 +30,18 @@ func main() {
 	generator := urlshortner.NewGenerator()
 
 	http.HandleFunc("/encode", func(w http.ResponseWriter, r *http.Request) {
-		Handler(w, r, generator)
+		EncodeHandler(w, r, generator)
 	})
+	http.HandleFunc("/decode", DecodeHandlder)
+	fmt.Println("Starting web service on :8080")
 	http.ListenAndServe(":8080", nil)
 
 }
 
-func Handler(w http.ResponseWriter, r *http.Request, generator *urlshortner.Generator) {
+func EncodeHandler(w http.ResponseWriter, r *http.Request, generator *urlshortner.Generator) {
 
 	generator.Start()
-	cb, err := couchbase.Connect(url)
+	cb, err := couchbase.Connect(cbURL)
 	mf(err)
 
 	pool, err := cb.GetPool("default")
@@ -58,17 +56,45 @@ func Handler(w http.ResponseWriter, r *http.Request, generator *urlshortner.Gene
 	id = generator.GetID()
 
 	hash = urlshortner.Dehydrate(id)
-	short = "http://localhost:8080/" + hash
+	short = shortURLPrefix + hash
 
 	if r.Method == "POST" {
 		body, err := ioutil.ReadAll(r.Body)
 		mf(err)
-		origURL = strings.Split(string(body), "=")[1]
+		origURL = string(body)
 	}
 
-	key := &KeyStruct{originalURL: origURL, shortURL: short, ID: id}
-	fmt.Println("orig:", origURL, "short:", short, "ID:", id, "hash:", hash)
-	fmt.Printf("%#v\n", key)
-	err = bucket.Set(strconv.Itoa(int(id)), 0, key)
+	io.Copy(w, strings.NewReader(short))
 
+	err = bucket.Set(strconv.Itoa(int(id)), 0, map[string]interface{}{"origURL": origURL, "shortURL": short, "ID": id})
+
+}
+
+func DecodeHandlder(w http.ResponseWriter, r *http.Request) {
+
+	cb, err := couchbase.Connect(cbURL)
+	mf(err)
+
+	pool, err := cb.GetPool("default")
+	mf(err)
+
+	bucket, err := pool.GetBucket(bname)
+	mf(err)
+
+	var hash, shortURL string
+	var id int64
+
+	if r.Method == "POST" {
+		body, err := ioutil.ReadAll(r.Body)
+		mf(err)
+		shortURL = string(body)
+	}
+
+	hash = strings.Split(shortURL, "/")[3]
+	id = urlshortner.Saturate(hash)
+
+	ob := map[string]interface{}{}
+	mf(bucket.Get(strconv.Itoa(int(id)), &ob))
+
+	io.Copy(w, strings.NewReader(ob["origURL"].(string)))
 }
