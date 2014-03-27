@@ -1,10 +1,7 @@
 package urlshortner
 
 import (
-	"fmt"
 	"math"
-	"os"
-	"strconv"
 )
 
 const (
@@ -73,13 +70,3 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
-func main() {
-	switch {
-	case os.Args[1] == "-s":
-		input = os.Args[2]
-		fmt.Println(Saturate(input))
-	case os.Args[1] == "-d":
-		number, _ = strconv.ParseInt(os.Args[2], 10, 64)
-		fmt.Println(Dehydrate(number))
-	}
-}

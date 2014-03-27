@@ -8,7 +8,7 @@ type Generator struct {
 func NewGenerator() *Generator {
 	return &Generator{
 		c:       make(chan int64, 1),
-		counter: 10000,
+		counter: 0,
 	}
 }
 
