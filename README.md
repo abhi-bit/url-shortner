@@ -12,8 +12,10 @@ Also make sure Couchbase Server is running on your box. In this case I used loca
 
 Run the `client.go` inside `client` dir. It will start web service on 8080
 
+```
 $ go run client.go 
 Starting web service on :8080
+```
 
 ## API
 
