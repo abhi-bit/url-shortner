@@ -35,7 +35,7 @@ http://localhost:8080/2bJ
 Pass the url to decode using POST and response is original URL.
 
 ```
-$ curl -d "http://localhost:8080/2bL" http://localhost:8080/decode
+$ curl -d "http://localhost:8080/2bJ" http://localhost:8080/decode
 http://google.com
 ```
 
