@@ -1,16 +1,16 @@
 # url-shortner
 
-URL shortening as a service
+URL shortening as a service.
 
 ## Installation 
 
     `go get github.com/abhi-bit/url-shortner`
 
-Also make sure Couchbase Server is running on your box. In this case I used local couchbase instance `http://localhost:8091` and bucket `default`
+Also make sure Couchbase Server is running on your box. In this case I used local couchbase instance `http://localhost:8091` and bucket `default`.
 
 ## Initialisation
 
-Run the `client.go` inside `client` dir. It will start web service on 8080
+Run the `client.go` inside `client` dir. It will start web service on 8080.
 
 ```
 $ go run client.go 
@@ -41,7 +41,7 @@ http://google.com
 
 ## Blob Structure
 
-Below is the blob structure inside Couchbase Server
+Below is the blob structure inside Couchbase Server.
 
 ```
 {
